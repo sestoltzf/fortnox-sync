@@ -1,0 +1,12 @@
+# Ignorera miljövariabler
+.env
+
+# Ignorera node_modules-mappen
+node_modules/
+
+# Ignorera loggfiler
+*.log
+
+# Ignorera byggfiler
+build/
+dist/
