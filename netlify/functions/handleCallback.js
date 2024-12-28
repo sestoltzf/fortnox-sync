@@ -9,17 +9,20 @@ exports.handler = async function (event, context) {
 
     // Kontrollera om Authorization Code finns
     if (!authorizationCode) {
+        console.error('Authorization Code saknas i förfrågan');
         return {
             statusCode: 400,
-            body: 'Authorization Code saknas i förfrågan',
+            body: JSON.stringify({ error: 'Authorization Code saknas i förfrågan' }),
         };
     }
 
     // Kontrollera om state finns och matchar det vi skickade
-    if (!state || state !== 'myuniquestate123') { // Byt ut 'myuniquestate123' till ditt faktiska state-värde
+    const expectedState = 'myuniquestate123'; // Byt ut mot ditt faktiska state-värde
+    if (!state || state !== expectedState) {
+        console.error('Ogiltigt eller saknat state-värde');
         return {
             statusCode: 400,
-            body: 'Ogiltigt eller saknat state-värde',
+            body: JSON.stringify({ error: 'Ogiltigt eller saknat state-värde' }),
         };
     }
 
@@ -41,15 +44,17 @@ exports.handler = async function (event, context) {
             }
         );
 
+        const { access_token, refresh_token } = response.data;
+
         // Logga Access Token och Refresh Token
-        console.log('Access Token:', response.data.access_token);
-        console.log('Refresh Token:', response.data.refresh_token);
+        console.log('Access Token:', access_token);
+        console.log('Refresh Token:', refresh_token);
 
         return {
             statusCode: 200,
             body: JSON.stringify({
-                accessToken: response.data.access_token,
-                refreshToken: response.data.refresh_token,
+                accessToken: access_token,
+                refreshToken: refresh_token,
             }),
         };
     } catch (error) {
