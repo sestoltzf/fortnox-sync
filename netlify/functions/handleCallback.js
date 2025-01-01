@@ -49,6 +49,7 @@ exports.handler = async function (event, context) {
 
     try {
         // Förbered POST-förfrågan till Fortnox
+        console.log('Förbereder POST-data...');
         const postData = new URLSearchParams({
             grant_type: 'authorization_code',
             code: authorizationCode,
@@ -57,7 +58,12 @@ exports.handler = async function (event, context) {
             redirect_uri: process.env.FORTNOX_REDIRECT_URI,
         }).toString();
 
-        console.log('POST-data som skickas till Fortnox:', postData);
+        console.log('POST-data som skickas till Fortnox:');
+        console.log('  grant_type: authorization_code');
+        console.log('  code:', authorizationCode);
+        console.log('  client_id:', process.env.FORTNOX_CLIENT_ID);
+        console.log('  client_secret:', process.env.FORTNOX_CLIENT_SECRET);
+        console.log('  redirect_uri:', process.env.FORTNOX_REDIRECT_URI);
 
         // Skicka POST-förfrågan
         const response = await axios.post(
@@ -89,6 +95,11 @@ exports.handler = async function (event, context) {
             status: error.response?.status,
             message: error.message,
         });
+
+        // Logga hela felobjektet för ytterligare insikt
+        if (error.toJSON) {
+            console.error('Hela felobjektet från Fortnox:', error.toJSON());
+        }
 
         // Returnera felet till klienten
         return {
