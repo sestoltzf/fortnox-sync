@@ -64,7 +64,13 @@ exports.handler = async function (event, context) {
         console.log('  client_id:', process.env.FORTNOX_CLIENT_ID);
         console.log('  client_secret:', process.env.FORTNOX_CLIENT_SECRET);
         console.log('  redirect_uri:', process.env.FORTNOX_REDIRECT_URI);
-
+        console.log('Förbereder POST-anrop...');
+        console.log('Authorization Code:', authorizationCode);
+        console.log('Client ID:', process.env.FORTNOX_CLIENT_ID);
+        console.log('Client Secret:', process.env.FORTNOX_CLIENT_SECRET);
+        console.log('Redirect URI:', process.env.FORTNOX_REDIRECT_URI);
+        console.log('POST-data:', postData);
+        
         // Skicka POST-förfrågan
         const response = await axios.post(
             'https://apps.fortnox.se/oauth-v1/token',
