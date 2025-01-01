@@ -1,7 +1,8 @@
 const axios = require('axios');
+require('dotenv').config();
 
 exports.handler = async function (event, context) {
-    console.log('handleCallback.js körs...'); // Kontrollera att funktionen körs
+    console.log('handleCallback.js körs...');
 
     // Hämta query parameters från URL
     const queryParams = event.queryStringParameters;
@@ -12,7 +13,7 @@ exports.handler = async function (event, context) {
 
     // Kontrollera om Authorization Code finns
     if (!authorizationCode) {
-        console.log('Authorization Code saknas!');
+        console.error('Authorization Code saknas!');
         return {
             statusCode: 400,
             body: JSON.stringify({ error: 'Authorization Code saknas i förfrågan' }),
@@ -22,7 +23,7 @@ exports.handler = async function (event, context) {
     // Kontrollera om state finns och matchar
     const expectedState = 'myuniquestate123'; // Detta måste matcha det du skickar i din OAuth-URL
     if (!state || state !== expectedState) {
-        console.log('State saknas eller matchar inte!', { state, expectedState });
+        console.error('State saknas eller matchar inte!', { state, expectedState });
         return {
             statusCode: 400,
             body: JSON.stringify({ error: 'Ogiltigt eller saknat state-värde' }),
@@ -32,18 +33,36 @@ exports.handler = async function (event, context) {
     console.log('Authorization Code mottagen:', authorizationCode);
     console.log('State mottaget och verifierat:', state);
 
+    // Kontrollera miljövariabler
+    console.log('Kontrollerar miljövariabler...');
+    console.log('FORTNOX_CLIENT_ID:', process.env.FORTNOX_CLIENT_ID);
+    console.log('FORTNOX_CLIENT_SECRET:', process.env.FORTNOX_CLIENT_SECRET);
+    console.log('FORTNOX_REDIRECT_URI:', process.env.FORTNOX_REDIRECT_URI);
+
+    if (!process.env.FORTNOX_CLIENT_ID || !process.env.FORTNOX_CLIENT_SECRET || !process.env.FORTNOX_REDIRECT_URI) {
+        console.error('Miljövariabler saknas! Kontrollera .env-filen eller Netlify-miljövariabler.');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Miljövariabler saknas. Kontrollera konfigurationen.' }),
+        };
+    }
+
     try {
-        // Byt Authorization Code mot Access Token
-        console.log('Skickar förfrågan till Fortnox för att byta Authorization Code mot Access Token...');
+        // Förbered POST-förfrågan till Fortnox
+        const postData = new URLSearchParams({
+            grant_type: 'authorization_code',
+            code: authorizationCode,
+            client_id: process.env.FORTNOX_CLIENT_ID,
+            client_secret: process.env.FORTNOX_CLIENT_SECRET,
+            redirect_uri: process.env.FORTNOX_REDIRECT_URI,
+        }).toString();
+
+        console.log('POST-data som skickas till Fortnox:', postData);
+
+        // Skicka POST-förfrågan
         const response = await axios.post(
             'https://apps.fortnox.se/oauth-v1/token',
-            new URLSearchParams({
-                grant_type: 'authorization_code',
-                code: authorizationCode,
-                client_id: process.env.FORTNOX_CLIENT_ID,
-                client_secret: process.env.FORTNOX_CLIENT_SECRET,
-                redirect_uri: process.env.FORTNOX_REDIRECT_URI,
-            }).toString(),
+            postData,
             {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             }
@@ -54,6 +73,7 @@ exports.handler = async function (event, context) {
         console.log('Access Token mottagen:', access_token);
         console.log('Refresh Token mottagen:', refresh_token);
 
+        // Returnera tokens
         return {
             statusCode: 200,
             body: JSON.stringify({
@@ -63,12 +83,14 @@ exports.handler = async function (event, context) {
             }),
         };
     } catch (error) {
+        // Fånga och logga fel
         console.error('Fel vid tokenhämtning:', {
             data: error.response?.data,
             status: error.response?.status,
             message: error.message,
         });
 
+        // Returnera felet till klienten
         return {
             statusCode: error.response?.status || 500,
             body: JSON.stringify({ error: error.response?.data || error.message }),

@@ -1,4 +1,5 @@
 const axios = require('axios');
+require('dotenv').config();
 
 exports.handler = async function () {
     const clientId = process.env.FORTNOX_CLIENT_ID;
