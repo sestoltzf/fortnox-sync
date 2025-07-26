@@ -66,46 +66,124 @@
         <h1>Fortnox OAuth Test</h1>
         
         <div class="status info">
-            <strong>Correct Redirect URI:</strong><br>
-            <div class="code">https://fortnox-at.netlify.app/.netlify/functions/handleCallback</div>
+            <strong>Private Integration - API Key Authentication</strong><br>
+            <div class="code">Access-Token: [din token] | Client-Secret: [ditt integration-id]</div>
         </div>
 
         <div id="status"></div>
 
-        <button onclick="initOAuth()">Initialize OAuth Flow</button>
+        <button onclick="generateToken()">Generate Access Token</button>
+        <button onclick="testConnection()">Test API Connection</button>
+        <button onclick="fetchInvoices()">Fetch Invoices</button>
         <button onclick="checkConfig()">Check Configuration</button>
-        <button onclick="testCallback()">Test Callback URL</button>
 
         <div id="result"></div>
     </div>
 
     <script>
-        async function initOAuth() {
+        async function generateToken() {
             const statusDiv = document.getElementById('status');
             const resultDiv = document.getElementById('result');
             
-            statusDiv.innerHTML = '<div class="status info">Initializing OAuth...</div>';
+            statusDiv.innerHTML = '<div class="status info">Generating Access Token...</div>';
             resultDiv.innerHTML = '';
 
             try {
-                const response = await fetch('/.netlify/functions/initOAuth');
+                const response = await fetch('/.netlify/functions/generateAccessToken');
                 const data = await response.json();
                 
                 if (response.ok) {
-                    statusDiv.innerHTML = '<div class="status success">OAuth URL generated successfully!</div>';
+                    statusDiv.innerHTML = '<div class="status success">Access Token generated successfully!</div>';
                     resultDiv.innerHTML = `
-                        <h3>OAuth Configuration:</h3>
-                        <p><strong>Redirect URI:</strong> <span class="code">${data.redirectUri}</span></p>
-                        <p><strong>State:</strong> <span class="code">${data.state}</span></p>
-                        <p><strong>Authorization URL:</strong></p>
-                        <div class="code">${data.authUrl}</div>
+                        <h3>Access Token Generated:</h3>
+                        <p><strong>Status:</strong> ${data.message}</p>
+                        <p><strong>Access Token:</strong></p>
+                        <div class="code">${data.accessToken}</div>
                         <br>
-                        <a href="${data.authUrl}" target="_blank">
-                            <button>Open Authorization URL</button>
-                        </a>
+                        <p><strong>Next Steps:</strong></p>
+                        <ol>
+                            <li>Copy the Access Token above</li>
+                            <li>Go to your Netlify dashboard → Environment variables</li>
+                            <li>Add a new variable: <code>FORTNOX_ACCESS_TOKEN</code></li>
+                            <li>Set its value to the token above</li>
+                            <li>Redeploy your site</li>
+                            <li>Test the connection again</li>
+                        </ol>
                     `;
                 } else {
-                    statusDiv.innerHTML = '<div class="status error">Error: ' + data.error + '</div>';
+                    statusDiv.innerHTML = '<div class="status error">Failed to generate Access Token: ' + data.error + '</div>';
+                    resultDiv.innerHTML = `
+                        <h3>Error Details:</h3>
+                        <p><strong>Message:</strong> ${data.message || 'No message'}</p>
+                        <p><strong>Details:</strong> ${data.details || 'No details'}</p>
+                        <p><strong>Note:</strong> ${data.note || 'No additional notes'}</p>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status error">Network error: ' + error.message + '</div>';
+            }
+        }
+
+        async function testConnection() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            statusDiv.innerHTML = '<div class="status info">Testing API connection...</div>';
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/.netlify/functions/testConnection');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status success">API connection successful!</div>';
+                    resultDiv.innerHTML = `
+                        <h3>API Test Results:</h3>
+                        <p><strong>Status:</strong> ${data.message}</p>
+                        <p><strong>Access Token:</strong> ${data.accessToken}</p>
+                        <p><strong>Client Secret:</strong> ${data.clientSecret}</p>
+                        <h4>Company Information:</h4>
+                        <pre class="code">${JSON.stringify(data.companyInfo, null, 2)}</pre>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">API connection failed: ' + data.error + '</div>';
+                    resultDiv.innerHTML = `
+                        <h3>Error Details:</h3>
+                        <p><strong>Message:</strong> ${data.message || 'No message'}</p>
+                        <p><strong>Required Variables:</strong> ${data.required ? data.required.join(', ') : 'Unknown'}</p>
+                        <p><strong>Details:</strong> ${data.details || 'No details'}</p>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status error">Network error: ' + error.message + '</div>';
+            }
+        }
+
+        async function fetchInvoices() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            statusDiv.innerHTML = '<div class="status info">Fetching invoices...</div>';
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/.netlify/functions/fetchInvoices');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status success">Invoices fetched successfully!</div>';
+                    resultDiv.innerHTML = `
+                        <h3>Invoices Data:</h3>
+                        <p><strong>Number of invoices:</strong> ${data.Invoices ? data.Invoices.length : 0}</p>
+                        <h4>Invoice List:</h4>
+                        <pre class="code">${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">Failed to fetch invoices: ' + data.error + '</div>';
+                    resultDiv.innerHTML = `
+                        <h3>Error Details:</h3>
+                        <p><strong>Details:</strong> ${data.details || data.error || 'No details'}</p>
+                    `;
                 }
             } catch (error) {
                 statusDiv.innerHTML = '<div class="status error">Network error: ' + error.message + '</div>';
@@ -120,39 +198,28 @@
             resultDiv.innerHTML = '';
 
             try {
-                const response = await fetch('/.netlify/functions/initOAuth');
+                const response = await fetch('/.netlify/functions/testConnection');
                 const data = await response.json();
                 
                 if (response.ok) {
                     statusDiv.innerHTML = '<div class="status success">Configuration looks good!</div>';
                     resultDiv.innerHTML = `
                         <h3>Current Configuration:</h3>
-                        <p><strong>Redirect URI:</strong> <span class="code">${data.redirectUri}</span></p>
-                        <p><strong>State:</strong> <span class="code">${data.state}</span></p>
+                        <p><strong>Access Token:</strong> ${data.accessToken}</p>
+                        <p><strong>Client Secret:</strong> ${data.clientSecret}</p>
+                        <p><strong>API Status:</strong> Working</p>
                     `;
                 } else {
                     statusDiv.innerHTML = '<div class="status error">Configuration error: ' + data.error + '</div>';
+                    resultDiv.innerHTML = `
+                        <h3>Missing Configuration:</h3>
+                        <p><strong>Required Variables:</strong> ${data.required ? data.required.join(', ') : 'Unknown'}</p>
+                        <p><strong>Message:</strong> ${data.message || 'No message'}</p>
+                    `;
                 }
             } catch (error) {
                 statusDiv.innerHTML = '<div class="status error">Network error: ' + error.message + '</div>';
             }
-        }
-
-        function testCallback() {
-            const statusDiv = document.getElementById('status');
-            const resultDiv = document.getElementById('result');
-            
-            const testUrl = 'https://fortnox-at.netlify.app/.netlify/functions/handleCallback?code=test123&state=myuniquestate123';
-            
-            statusDiv.innerHTML = '<div class="status info">Testing callback URL...</div>';
-            resultDiv.innerHTML = `
-                <h3>Test Callback URL:</h3>
-                <div class="code">${testUrl}</div>
-                <br>
-                <a href="${testUrl}" target="_blank">
-                    <button>Test Callback (will show error, but tests if function is accessible)</button>
-                </a>
-            `;
         }
     </script>
 </body>
