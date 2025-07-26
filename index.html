@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortnox OAuth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .code {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fortnox OAuth Test</h1>
+        
+        <div class="status info">
+            <strong>Correct Redirect URI:</strong><br>
+            <div class="code">https://fortnox-at.netlify.app/.netlify/functions/handleCallback</div>
+        </div>
+
+        <div id="status"></div>
+
+        <button onclick="initOAuth()">Initialize OAuth Flow</button>
+        <button onclick="checkConfig()">Check Configuration</button>
+        <button onclick="testCallback()">Test Callback URL</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function initOAuth() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            statusDiv.innerHTML = '<div class="status info">Initializing OAuth...</div>';
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/.netlify/functions/initOAuth');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status success">OAuth URL generated successfully!</div>';
+                    resultDiv.innerHTML = `
+                        <h3>OAuth Configuration:</h3>
+                        <p><strong>Redirect URI:</strong> <span class="code">${data.redirectUri}</span></p>
+                        <p><strong>State:</strong> <span class="code">${data.state}</span></p>
+                        <p><strong>Authorization URL:</strong></p>
+                        <div class="code">${data.authUrl}</div>
+                        <br>
+                        <a href="${data.authUrl}" target="_blank">
+                            <button>Open Authorization URL</button>
+                        </a>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">Error: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status error">Network error: ' + error.message + '</div>';
+            }
+        }
+
+        async function checkConfig() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            statusDiv.innerHTML = '<div class="status info">Checking configuration...</div>';
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/.netlify/functions/initOAuth');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status success">Configuration looks good!</div>';
+                    resultDiv.innerHTML = `
+                        <h3>Current Configuration:</h3>
+                        <p><strong>Redirect URI:</strong> <span class="code">${data.redirectUri}</span></p>
+                        <p><strong>State:</strong> <span class="code">${data.state}</span></p>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">Configuration error: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status error">Network error: ' + error.message + '</div>';
+            }
+        }
+
+        function testCallback() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            const testUrl = 'https://fortnox-at.netlify.app/.netlify/functions/handleCallback?code=test123&state=myuniquestate123';
+            
+            statusDiv.innerHTML = '<div class="status info">Testing callback URL...</div>';
+            resultDiv.innerHTML = `
+                <h3>Test Callback URL:</h3>
+                <div class="code">${testUrl}</div>
+                <br>
+                <a href="${testUrl}" target="_blank">
+                    <button>Test Callback (will show error, but tests if function is accessible)</button>
+                </a>
+            `;
+        }
+    </script>
+</body>
+</html> 
