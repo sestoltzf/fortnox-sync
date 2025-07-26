@@ -66,13 +66,13 @@
         <h1>Fortnox OAuth Test</h1>
         
         <div class="status info">
-            <strong>Private Integration - API Key Authentication</strong><br>
-            <div class="code">Access-Token: [din token] | Client-Secret: [ditt integration-id]</div>
+            <strong>OAuth 2.0 Authorization Code Flow</strong><br>
+            <div class="code">Redirect URI: https://fortnox-at.netlify.app/.netlify/functions/handleCallback</div>
         </div>
 
         <div id="status"></div>
 
-        <button onclick="generateToken()">Generate Access Token</button>
+        <button onclick="initOAuth()">Initialize OAuth Flow</button>
         <button onclick="testConnection()">Test API Connection</button>
         <button onclick="fetchInvoices()">Fetch Invoices</button>
         <button onclick="checkConfig()">Check Configuration</button>
@@ -81,46 +81,32 @@
     </div>
 
     <script>
-        async function generateToken() {
+        async function initOAuth() {
             const statusDiv = document.getElementById('status');
             const resultDiv = document.getElementById('result');
             
-            statusDiv.innerHTML = '<div class="status info">Generating Access Token...</div>';
+            statusDiv.innerHTML = '<div class="status info">Initializing OAuth...</div>';
             resultDiv.innerHTML = '';
 
             try {
-                const response = await fetch('/.netlify/functions/generateAccessToken');
+                const response = await fetch('/.netlify/functions/initOAuth');
                 const data = await response.json();
                 
                 if (response.ok) {
-                    statusDiv.innerHTML = '<div class="status success">Access Token generated successfully!</div>';
+                    statusDiv.innerHTML = '<div class="status success">OAuth URL generated successfully!</div>';
                     resultDiv.innerHTML = `
-                        <h3>Access Token Generated:</h3>
-                        <p><strong>Status:</strong> ${data.message}</p>
-                        <p><strong>Access Token:</strong></p>
-                        <div class="code">${data.accessToken}</div>
+                        <h3>OAuth Configuration:</h3>
+                        <p><strong>Redirect URI:</strong> <span class="code">${data.redirectUri}</span></p>
+                        <p><strong>State:</strong> <span class="code">${data.state}</span></p>
+                        <p><strong>Authorization URL:</strong></p>
+                        <div class="code">${data.authUrl}</div>
                         <br>
-                        <p><strong>Next Steps:</strong></p>
-                        <ol>
-                            <li>Copy the Access Token above</li>
-                            <li>Go to your Netlify dashboard → Environment variables</li>
-                            <li>Add a new variable: <code>FORTNOX_ACCESS_TOKEN</code></li>
-                            <li>Set its value to the token above</li>
-                            <li>Redeploy your site</li>
-                            <li>Test the connection again</li>
-                        </ol>
+                        <a href="${data.authUrl}" target="_blank">
+                            <button>Open Authorization URL</button>
+                        </a>
                     `;
                 } else {
-                    statusDiv.innerHTML = '<div class="status error">Failed to generate Access Token: ' + data.error + '</div>';
-                    resultDiv.innerHTML = `
-                        <h3>Error Details:</h3>
-                        <p><strong>Message:</strong> ${data.message || 'No message'}</p>
-                        <p><strong>Required Variables:</strong> ${data.required ? data.required.join(', ') : 'Unknown'}</p>
-                        <p><strong>Debug Info:</strong></p>
-                        <pre class="code">${JSON.stringify(data.debug, null, 2)}</pre>
-                        <p><strong>Details:</strong> ${data.details ? JSON.stringify(data.details) : 'No details'}</p>
-                        <p><strong>Note:</strong> ${data.note || 'No additional notes'}</p>
-                    `;
+                    statusDiv.innerHTML = '<div class="status error">Error: ' + data.error + '</div>';
                 }
             } catch (error) {
                 statusDiv.innerHTML = '<div class="status error">Network error: ' + error.message + '</div>';
@@ -201,16 +187,16 @@
             resultDiv.innerHTML = '';
 
             try {
-                const response = await fetch('/.netlify/functions/testConnection');
+                const response = await fetch('/.netlify/functions/initOAuth');
                 const data = await response.json();
                 
                 if (response.ok) {
                     statusDiv.innerHTML = '<div class="status success">Configuration looks good!</div>';
                     resultDiv.innerHTML = `
                         <h3>Current Configuration:</h3>
-                        <p><strong>Access Token:</strong> ${data.accessToken}</p>
-                        <p><strong>Client Secret:</strong> ${data.clientSecret}</p>
-                        <p><strong>API Status:</strong> Working</p>
+                        <p><strong>Redirect URI:</strong> <span class="code">${data.redirectUri}</span></p>
+                        <p><strong>State:</strong> <span class="code">${data.state}</span></p>
+                        <p><strong>OAuth Status:</strong> Ready</p>
                     `;
                 } else {
                     statusDiv.innerHTML = '<div class="status error">Configuration error: ' + data.error + '</div>';
