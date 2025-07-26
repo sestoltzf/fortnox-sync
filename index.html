@@ -115,7 +115,10 @@
                     resultDiv.innerHTML = `
                         <h3>Error Details:</h3>
                         <p><strong>Message:</strong> ${data.message || 'No message'}</p>
-                        <p><strong>Details:</strong> ${data.details || 'No details'}</p>
+                        <p><strong>Required Variables:</strong> ${data.required ? data.required.join(', ') : 'Unknown'}</p>
+                        <p><strong>Debug Info:</strong></p>
+                        <pre class="code">${JSON.stringify(data.debug, null, 2)}</pre>
+                        <p><strong>Details:</strong> ${data.details ? JSON.stringify(data.details) : 'No details'}</p>
                         <p><strong>Note:</strong> ${data.note || 'No additional notes'}</p>
                     `;
                 }

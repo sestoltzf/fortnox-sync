@@ -6,6 +6,10 @@ exports.handler = async function (event, context) {
     const clientId = process.env.FORTNOX_CLIENT_ID;
     const clientSecret = process.env.FORTNOX_CLIENT_SECRET;
 
+    console.log('Checking environment variables...');
+    console.log('FORTNOX_CLIENT_ID:', clientId ? 'Set' : 'Missing');
+    console.log('FORTNOX_CLIENT_SECRET:', clientSecret ? 'Set' : 'Missing');
+
     if (!clientId || !clientSecret) {
         return {
             statusCode: 400,
@@ -16,7 +20,11 @@ exports.handler = async function (event, context) {
             body: JSON.stringify({ 
                 error: 'Miljövariabler saknas',
                 message: 'Kontrollera att FORTNOX_CLIENT_ID och FORTNOX_CLIENT_SECRET är satta.',
-                required: ['FORTNOX_CLIENT_ID', 'FORTNOX_CLIENT_SECRET']
+                required: ['FORTNOX_CLIENT_ID', 'FORTNOX_CLIENT_SECRET'],
+                debug: {
+                    clientId: clientId ? 'Set' : 'Missing',
+                    clientSecret: clientSecret ? 'Set' : 'Missing'
+                }
             }),
         };
     }
