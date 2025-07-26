@@ -9,6 +9,7 @@ exports.handler = async function (event, context) {
     console.log('Checking environment variables...');
     console.log('FORTNOX_CLIENT_ID:', clientId ? 'Set' : 'Missing');
     console.log('FORTNOX_CLIENT_SECRET:', clientSecret ? 'Set' : 'Missing');
+    console.log('All environment variables:', Object.keys(process.env).filter(key => key.includes('FORTNOX')));
 
     if (!clientId || !clientSecret) {
         return {
@@ -23,7 +24,8 @@ exports.handler = async function (event, context) {
                 required: ['FORTNOX_CLIENT_ID', 'FORTNOX_CLIENT_SECRET'],
                 debug: {
                     clientId: clientId ? 'Set' : 'Missing',
-                    clientSecret: clientSecret ? 'Set' : 'Missing'
+                    clientSecret: clientSecret ? 'Set' : 'Missing',
+                    redirectUri: process.env.FORTNOX_REDIRECT_URI ? 'Set' : 'Missing'
                 }
             }),
         };
