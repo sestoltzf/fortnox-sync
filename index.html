@@ -83,6 +83,37 @@
     </div>
 
     <script>
+        async function debugEnv() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            statusDiv.innerHTML = '<div class="status info">Debugging environment variables...</div>';
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/.netlify/functions/debugEnv');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status success">Environment debug completed!</div>';
+                    resultDiv.innerHTML = `
+                        <h3>Environment Variables Debug:</h3>
+                        <p><strong>Total Environment Variables:</strong> ${data.totalEnvVars}</p>
+                        <p><strong>Fortnox Variables Found:</strong> ${data.fortnoxVars.join(', ') || 'None'}</p>
+                        <p><strong>FORTNOX_CLIENT_ID:</strong> ${data.clientId}</p>
+                        <p><strong>FORTNOX_CLIENT_SECRET:</strong> ${data.clientSecret}</p>
+                        <p><strong>FORTNOX_REDIRECT_URI:</strong> ${data.redirectUri}</p>
+                        <h4>First 20 Environment Variables:</h4>
+                        <pre class="code">${data.allEnvVars.join('\n')}</pre>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">Debug failed: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status error">Network error: ' + error.message + '</div>';
+            }
+        }
+
         async function generateToken() {
             const statusDiv = document.getElementById('status');
             const resultDiv = document.getElementById('result');
